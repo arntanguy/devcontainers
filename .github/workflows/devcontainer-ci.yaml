@@ -1,0 +1,79 @@
+name: CI Ubuntu Jammy (Devcontainer)
+
+on:
+  repository_dispatch:
+    types:
+    - build-jammy
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        container: [jammy-base] #, noble]
+    steps:
+    # - name: Maximize build space
+    #   shell: bash
+    #   run: |
+    #     sudo rm -rf /usr/share/dotnet
+    #     sudo rm -rf /opt/ghc
+    #     sudo docker image prune --all --force
+    #     echo "===== AVAILABLE DISK SPACE ====="
+    #     df -h
+    # - name: Free Disk Space (Ubuntu)
+    #   uses: jlumbroso/free-disk-space@main
+    #   with:
+    #     # this might remove tools that are actually needed,
+    #     # if set to "true" but frees about 6 GB
+    #     tool-cache: true
+    #     # all of these default to true, but feel free to set to
+    #     # "false" if necessary for your workflow
+    #     android: true
+    #     dotnet: true
+    #     haskell: true
+    #     large-packages: true
+    #     docker-images: true
+    #     swap-storage: true
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    # This workflow tests building the image but does not push it to github container registry
+    - name: Pre-build dev container image (branches and forks)
+      if: (github.ref != 'refs/heads/main' && github.repository == 'arntanguy/devcontainers') || github.repository != 'arntanguy/devcontainers'
+      uses: devcontainers/ci@v0.3
+      with:
+        subFolder: .github/devcontainer/${{ matrix.container }}
+        configFile: .github/devcontainer/${{ matrix.container }}/devcontainer.json
+        push: never
+
+    # Main workflow builds and pushes
+    - name: Pre-build dev container image (main branch of official repository)
+      if: github.ref == 'refs/heads/main' && github.repository == 'arntanguy/devcontainers'
+      uses: devcontainers/ci@v0.3
+      with:
+        # cacheFrom: ghcr.io/arntanguy/mc-rtc-superbuild
+        imageName: ghcr.io/arntanguy/devcontainers/${{ matrix.container }}
+        imageTag: latest 
+        subFolder: .github/devcontainer/${{ matrix.container }}
+        configFile: .github/devcontainer/${{ matrix.container }}/devcontainer.json
+        push: always
