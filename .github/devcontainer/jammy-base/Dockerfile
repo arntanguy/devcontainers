@@ -13,8 +13,13 @@ RUN rm -f /etc/apt/apt.conf.d/docker-clean
 # Install sudo
 RUN  --mount=type=cache,target=/var/cache/apt \
   apt-get update \
- && apt-get install -y --no-install-recommends sudo ccache ripgrep rsync curl wget zsh gnupg2 gpg-agent openssh-server clangd \
+ && apt-get install -y --no-install-recommends sudo ccache ripgrep rsync curl wget zsh gnupg2 gpg-agent openssh-server clangd git build-essential doxygen clang-format \
+ # git-lfs
+ && curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash \
+ && sudo apt install git-lfs \
+ && git lfs install \
  && rm -rf /var/lib/apt/lists/*
+
 
 # Create ubuntu user with sudo privileges
 RUN useradd -ms /bin/zsh vscode && \

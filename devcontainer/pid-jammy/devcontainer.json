@@ -1,0 +1,37 @@
+{
+  "name": "pid-jammy",
+
+  // See .github/devcontainer/ubuntu-22.04/devcontainer.json to see how this image was built
+  // This image contains:
+  // - All of mc-rtc-superbuild dependencies
+  // - A ccache build cache built from the latest sources
+  // - A cython build cache built from the latest sources
+  // - All tools required to build the project
+  // - A sensible default configuration for vscode
+  "image": "ghcr.io/arntanguy/devcontainers/pid-jammy:latest",
+
+  "mounts": [
+    "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/docker-ws/pid-jammy-workspace,target=/home/vscode/workspace,type=bind,consistency=cached"
+  ],
+
+  "runArgs": [
+    "--network=host",
+    "--cap-add=sys_nice", // Grants the container the CAP_SYS_NICE capability, which allows the container to raise process nice values, set real-time scheduling policies, set CPU affinity, and other operations.
+    "--security-opt", // allow core dumps
+    "seccomp=unconfined", // allow core dumps
+    // Uncomment for containers requiring use of nvidia GPUs
+    // You will need to install NVIDIA Container Toolkit first
+    // "--runtime=nvidia",
+    // "--gpus=all",
+  ],
+
+  "containerEnv": {
+    "UBUNTU_VERSION": "jammy",
+    "DISPLAY": "${localEnv:DISPLAY}"
+  },
+
+  "remoteUser": "vscode",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/home/vscode/devcontainer,type=bind",
+  "workspaceFolder": "/home/vscode/workspace"
+}

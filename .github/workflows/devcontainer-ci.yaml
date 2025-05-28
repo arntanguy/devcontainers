@@ -21,8 +21,9 @@ jobs:
       id-token: write
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
-        container: [jammy-base] #, noble]
+        container: [jammy-base, pid-jammy] #, noble]
     steps:
     # - name: Maximize build space
     #   shell: bash
